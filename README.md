@@ -10,6 +10,7 @@ Bootstrap + upgrade prompty do konfiguracji GitHub Copilot w mikroserwisach (plu
 - **copilot_jetbrains_bootstrap.md** — **v1** (plugin 1.5.65+). Świeży serwis, bez Custom Agents. Zostaje dla referencji i serwisów na starszym pluginie.
 - **copilot_jetbrains_bootstrap_v2.md** — **v2** (plugin 1.6.1+). Świeży serwis, Z Custom Agents (architect/coder/reviewer/debugger) + handoffs + nested AGENTS.md guidance. **REKOMENDOWANE** dla nowych konfiguracji.
 - **copilot_jetbrains_upgrade_v1_to_v2.md** — **upgrade prompt** dla serwisów które już mają v1 i chcą dostać Custom Agents bez utraty `.github/copilot-lessons.md` ani lokalnych dostosowań. Dual-mode (interactive / autonomous).
+- **autonomous_subagent_workflow.md** — gotowe prompty do uruchamiania pętli subagentów (architect → coder → debugger → reviewer → coder) w jednej sesji Copilot Chat. 4 warianty (full feature, bug fix, refactor, code review only) + diagnostyka + plan B gdy plugin nie wywołuje subagentów automatycznie. Wymaga `Enable Subagent: ON` w Settings.
 
 ## Który prompt wybrać
 
