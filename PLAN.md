@@ -15,21 +15,29 @@ Wycisnąć z GitHub Copilota w JetBrains (środowisko GFT) maksimum: dopasowanie
 - [x] **Milestone 1.5:** v2 prompt + upgrade prompt v1→v2 (po update plugina do 1.6.1-243)
   - Opis: Native AGENTS.md/CLAUDE.md (z nested), 4-agent advisor architecture (architect/coder/reviewer/debugger) z `handoffs`, dual-mode upgrade prompt (interactive/autonomous), Phase 6 zaktualizowany o `/memory`, inline agent, auto-approve, MCP auto-approve
   - Deadline: 2026-05-07 ✅
+  - **POST-MORTEM (2026-05-08):** v2 oparte na założeniu że `handoffs:` i per-agent `model:` działają w JetBrains. DR (raport: research/dr_report_2026-05-08_jetbrains_agents.md) wykazał że to jest VS Code-style i nieudokumentowane / unstable / ignorowane w JetBrains 1.6.x. v2 zostaje dla VS Code, JetBrains przeszedł na v3.
 
-- [ ] **Milestone 2:** Pierwszy realny test na serwisie GFT
-  - Opis: wybrać 1 serwis, uruchomić v2 (świeży) lub upgrade (jeśli już ma v1), zmierzyć trafność, zebrać korekty. Specjalna uwaga: czy advisor handoffs (Coder→Reviewer) działa płynnie i redukuje turn-y w sesji.
+- [x] **Milestone 1.6:** v3 prompt + upgrade v2→v3 + DR raport (po DR z 2026-05-08)
+  - Opis: official-safe format (tylko pola udokumentowane przez GitHub dla JetBrains: name, description, tools, user-invocable, disable-model-invocation; bez handoffs, bez model). Architektura: 1 main (Architect) + 3 helpers, max 1 poziom delegacji, model jednolity per sesja. Wieloetapowe workflows przez `.github/prompts/full-feature-loop.prompt.md`. DR raport jako trwała lekcja w `research/`.
+  - Deadline: 2026-05-08 ✅
+
+- [ ] **Milestone 2:** Pierwszy realny test v3 na serwisie GFT
+  - Opis: wybrać 1 serwis, uruchomić v3 (świeży) lub upgrade v2→v3 (jeśli już ma v2). Mierzyć:
+    - Czy Architect pojawia się w agents dropdown
+    - Czy Architect → Coder przez `agent` tool zwraca "finished execution" (nie "failed")
+    - Jak `#prompt:full-feature-loop` działa w wieloetapowym tasku (czy stage'e są jasne, czy user wie kiedy switchować model/sesję)
   - Deadline: do końca maja 2026
 
-- [ ] **Milestone 3:** v2.1 prompta po lekcjach z 2-3 serwisów
-  - Opis: zaktualizować v2 (i upgrade prompt) na podstawie tego co wygenerował bzdury / co pominął. Najpewniej: dopracowanie handoff promptów, ewentualne dodatkowe agents (np. migration-author dla Flyway-heavy serwisów).
+- [ ] **Milestone 3:** v3.1 po lekcjach z 2-3 serwisów
+  - Opis: zaktualizować v3 + upgrade v2→v3 na podstawie realnych użyć. Możliwe kierunki: dopracowanie body Architecta (kiedy delegować vs nie), uproszczenie `full-feature-loop`, usunięcie helperów które nie są używane (np. Debugger jeśli rzadko triggerowany).
   - Deadline: ~lipiec 2026
 
-- [ ] **Milestone 4:** v3 — MCP servers per-agent + hooks
-  - Opis: dodać `mcp-servers` w frontmatter agentów (np. Architect z Atlassian MCP do czytania ticketów), hooks preToolUse/postToolUse gdy wyjdą z preview. Tylko gdy v2 sprawdzony w 2-3 serwisach.
+- [ ] **Milestone 4:** Agent Skills (preview) gdy GFT zezwoli
+  - Opis: dodać `.github/skills/` (Agent Skills) jako alternatywę dla wieloetapowych workflows — wymaga policy "Editor preview features" włączonej. Tylko gdy v3 sprawdzony i policy dostępna.
   - Deadline: TBD
 
 - [ ] **Milestone 5 (opcjonalny):** MCP server zamiast wklejania prompta
-  - Opis: rozważyć przepisanie prompta na MCP server żeby był single source of truth, aktualizowany centralnie. Prawdopodobnie przeskakuje milestone 4 i wchodzi razem z MCP per-agent.
+  - Opis: rozważyć przepisanie prompta na MCP server żeby był single source of truth, aktualizowany centralnie.
   - Deadline: TBD
 
 ---
@@ -52,7 +60,11 @@ Wycisnąć z GitHub Copilota w JetBrains (środowisko GFT) maksimum: dopasowanie
 
 ### Zakończone
 
-- [x] 2026-05-07: v2 bootstrap prompt — Custom Agents + handoffs + nested AGENTS.md guidance
+- [x] 2026-05-08: v3 bootstrap prompt — JetBrains official-safe (1 main + 3 helpers, max 1 poziom delegacji)
+- [x] 2026-05-08: upgrade prompt v2→v3 — dual-mode, przebudowuje agent files, dodaje full-feature-loop.prompt.md
+- [x] 2026-05-08: Deep Research raport — `research/dr_report_2026-05-08_jetbrains_agents.md` (cytaty GitHub Docs, mapa "co działa / co nie")
+- [x] 2026-05-08: autonomous_subagent_workflow.md (gotowe prompty subagent loop, wariant Plan B działa nawet gdy plugin ma bug)
+- [x] 2026-05-07: v2 bootstrap prompt — Custom Agents + handoffs + nested AGENTS.md guidance (deprecated dla JetBrains po DR z 05-08, zostaje dla VS Code)
 - [x] 2026-05-07: upgrade prompt v1→v2 — dual-mode, additive migration, preserve copilot-lessons.md
 - [x] 2026-05-07: research zmian w plugin 1.6.x (changelogi 11/2025, 03/2026, 04/2026, docs custom-agents)
 - [x] Iteracja v1 prompta (4 rundy refinementu z @cto: support matrix, no-overengineering, JetBrains-specific corrections, self-improvement loop)
