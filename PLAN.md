@@ -21,12 +21,18 @@ Wycisnąć z GitHub Copilota w JetBrains (środowisko GFT) maksimum: dopasowanie
   - Opis: official-safe format (tylko pola udokumentowane przez GitHub dla JetBrains: name, description, tools, user-invocable, disable-model-invocation; bez handoffs, bez model). Architektura: 1 main (Architect) + 3 helpers, max 1 poziom delegacji, model jednolity per sesja. Wieloetapowe workflows przez `.github/prompts/full-feature-loop.prompt.md`. DR raport jako trwała lekcja w `research/`.
   - Deadline: 2026-05-08 ✅
 
-- [ ] **Milestone 2:** Pierwszy realny test v3 na serwisie GFT
-  - Opis: wybrać 1 serwis, uruchomić v3 (świeży) lub upgrade v2→v3 (jeśli już ma v2). Mierzyć:
-    - Czy Architect pojawia się w agents dropdown
-    - Czy Architect → Coder przez `agent` tool zwraca "finished execution" (nie "failed")
-    - Jak `#prompt:full-feature-loop` działa w wieloetapowym tasku (czy stage'e są jasne, czy user wie kiedy switchować model/sesję)
-  - Deadline: do końca maja 2026
+- [x] **Milestone 1.7:** v4 prompt + upgrade v3→v4 — single CTO agent (EXPERIMENTAL)
+  - Opis: alternatywa architektoniczna do v3. Jeden uniwersalny agent CTO inspirowany TEAM/CTO.md (Werner Vogels-style: pragmatyzm, primitives, build it run it). Polski język, symulator perspektyw, Protokół Zero, Zero Halucynacji, Weryfikacja Sędziego. Robi sam: plan/impl/debug/review w jednej sesji. v3 zostaje stable, v4 do testowania równolegle.
+  - Deadline: 2026-05-27 ✅
+
+- [ ] **Milestone 2:** Pierwszy realny test v3 vs v4 na serwisie GFT (porównanie)
+  - Opis: wybrać 1 serwis, najpierw uruchomić v3 (lub upgrade do v3), zrobić feature lub fix. Potem upgrade do v4 (`upgrade_v3_to_v4.md`), zrobić podobny feature/fix. Porównać subiektywnie:
+    - Liczba kliknięć / interakcji per task
+    - Jakość final reportu
+    - Czy CTO faktycznie wykonuje wszystkie fazy które v3 deleguje
+    - Polski język i symulator perspektyw — czy realnie pomagają, czy są bloat
+    - Czy subagent invocation v3 zwracał "failed" — czy v4 omija ten problem
+  - Deadline: do końca czerwca 2026
 
 - [ ] **Milestone 3:** v3.1 po lekcjach z 2-3 serwisów
   - Opis: zaktualizować v3 + upgrade v2→v3 na podstawie realnych użyć. Możliwe kierunki: dopracowanie body Architecta (kiedy delegować vs nie), uproszczenie `full-feature-loop`, usunięcie helperów które nie są używane (np. Debugger jeśli rzadko triggerowany).
@@ -60,6 +66,8 @@ Wycisnąć z GitHub Copilota w JetBrains (środowisko GFT) maksimum: dopasowanie
 
 ### Zakończone
 
+- [x] 2026-05-27: v4 bootstrap prompt — single CTO agent (Werner Vogels-style, polski, symulator perspektyw, Protokół Zero, Zero Halucynacji, Weryfikacja Sędziego)
+- [x] 2026-05-27: upgrade prompt v3→v4 — kasuje 4 helpery, dodaje 1 CTO, aktualizuje narrative, zachowuje lessons/instructions/prompts (w tym full-feature-loop jako opcję)
 - [x] 2026-05-08: v3 bootstrap prompt — JetBrains official-safe (1 main + 3 helpers, max 1 poziom delegacji)
 - [x] 2026-05-08: upgrade prompt v2→v3 — dual-mode, przebudowuje agent files, dodaje full-feature-loop.prompt.md
 - [x] 2026-05-08: Deep Research raport — `research/dr_report_2026-05-08_jetbrains_agents.md` (cytaty GitHub Docs, mapa "co działa / co nie")

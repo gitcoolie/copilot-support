@@ -4,13 +4,15 @@
 
 **Cel:** Maksymalne wykorzystanie GitHub Copilot w środowisku JetBrains klienta (GFT) — stworzyć i utrzymywać jeden bootstrap prompt który po jednorazowym uruchomieniu w danym serwisie konfiguruje Copilota tak, żeby był maksymalnie inteligentny, kontekstowy, i nie wkurwiał (nie overengineerował, dopasowywał się do konwencji repo, uczył się z korekt).
 
-**Status:** AKTYWNY — v3 prompt + upgrade v2→v3 gotowe (2026-05-08), do testów na realnych serwisach. v2 zachowany dla VS Code, v1 dla pluginu 1.5.65.
+**Status:** AKTYWNY — v3 (stable) i v4 (EXPERIMENTAL single-CTO) działają równolegle. Do testów na realnych serwisach. v2 zachowany dla VS Code, v1 dla pluginu 1.5.65.
 
 **Data utworzenia:** 2026-05-06
-**Ostatnia istotna zmiana:** 2026-05-08 — Deep Research wykazał że v2 architektura (handoffs + per-agent model) jest VS Code-style, nieportable do JetBrains 1.6.x. Dodane v3 (official-safe) + upgrade v2→v3 + raport DR w `research/`.
+**Ostatnia istotna zmiana:** 2026-05-27 — dodane v4 + upgrade v3→v4. v4 to alternatywa architektoniczna: jeden uniwersalny agent CTO (Werner Vogels-style, polski, symulator perspektyw, Protokół Zero, Zero Halucynacji, Weryfikacja Sędziego) zamiast 4 wyspecjalizowanych helperów z v3. Inspirowane `TEAM/CTO.md`. Do testowania równolegle z v3 — wybór architektury per Twoja preferencja.
 
 **Kluczowe pliki:**
-- `copilot_jetbrains_bootstrap_v3.md` — **GŁÓWNY ARTEFAKT** dla świeżych serwisów na pluginie JetBrains 1.6.1+. Tylko oficjalnie udokumentowane pola, 1 main + 3 helpers, max 1 poziom delegacji. Wieloetapowe workflows przez `full-feature-loop.prompt.md`.
+- `copilot_jetbrains_bootstrap_v4.md` — **EXPERIMENTAL** single-CTO architecture. Jeden uniwersalny agent inspirowany TEAM/CTO.md.
+- `copilot_jetbrains_bootstrap_v3.md` — **STABLE** 4-agent advisor. Architect + Coder + Reviewer + Debugger z 1-poziomem delegacji.
+- `copilot_jetbrains_upgrade_v3_to_v4.md` — przejście v3 → v4 (kasuje 4 helpery, dodaje 1 CTO). Dual-mode.
 - `copilot_jetbrains_upgrade_v2_to_v3.md` — upgrade dla serwisów na v2. Dual-mode, zachowuje lessons/instructions/prompts.
 - `copilot_jetbrains_bootstrap_v2.md` — v2 (VS Code-style), z `handoffs:` i per-agent `model:`. **Deprecated w JetBrains**, zostaje dla VS Code i historii decyzji.
 - `copilot_jetbrains_upgrade_v1_to_v2.md` — upgrade v1 → v2 (potrzebny przed v2→v3 jeśli serwis stoi na v1).
@@ -41,11 +43,14 @@ Pracuję w GFT na środowisku klienta. Mam Copilota z Claude Sonnet 4.6, Opus 4.
 
 ## Next Steps
 
-1. [ ] Wybrać pierwszy serwis GFT do testu v3 (najprostszy, niska stawka)
-2. [ ] Uruchomić odpowiedni prompt: świeży serwis → `bootstrap_v3.md`; serwis z v2 → `upgrade_v2_to_v3.md`; serwis z v1 → najpierw `upgrade_v1_to_v2.md`, potem `upgrade_v2_to_v3.md`
-3. [ ] Specjalnie zmierzyć:
-   - Czy Architect pojawia się w agents dropdown (visible: user-invocable=true)
-   - Czy Architect → Coder delegation przez `agent` tool zwraca "finished" zamiast "failed"
-   - Jak działa `#prompt:full-feature-loop` w realnym wieloetapowym ticktecie
-4. [ ] Po 2-3 użyciach: zebrać lekcje → iterować v3.1 lub potencjalnie v4 jeśli rdzeń wymaga rewritu
-5. [ ] Push v3 + upgrade v2→v3 + DR raport do public repo na GitHubie
+1. [ ] Wybrać pierwszy serwis GFT do testu v4 (najprostszy, niska stawka)
+2. [ ] Uruchomić `upgrade_v3_to_v4.md` na serwisie który jest na v3 (najlepiej ten sam co już testowany — porównanie)
+3. [ ] Specjalnie zmierzyć vs v3:
+   - Czy CTO pojawia się w agents dropdown jako jedyny
+   - Czy Protokół Zero faktycznie się odpala (widać że czyta pliki)
+   - Czy AUTO-BRIEF jest po polsku, z 4 sekcjami
+   - Czy CTO sam decyduje o fazach (plan/impl/debug/review) czy gubi się
+   - Symulator perspektyw — czy faktycznie pokazuje >1 perspektywę czy pomija
+   - Weryfikacja Sędziego przed claim "done" — czy ją robi
+4. [ ] Porównanie subiektywne v3 vs v4 po 3 użyciach: który workflow szybszy / przyjemniejszy / dokładniejszy
+5. [ ] Po wyborze faworyta: zostawić oba, oznaczyć faworyt jako "REKOMENDOWANE" w README
