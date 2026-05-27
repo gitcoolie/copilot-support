@@ -85,25 +85,52 @@ Multi-root workspace behavior (verify in Phase 1):
 
 Tools aliases (same as JetBrains): `execute`, `read`, `edit`, `search`, `agent`, `web`, `todo`.
 
+# PREREQUISITES (check first)
+
+This prompt assumes workspace was initialized by `copilot_workspace_init.md`. Look for these files at workspace root:
+- `.copilot-workspace-config.yml` (whitelist of sub-repos in scope)
+- `data/tech-radar.md` (allowed/avoided/planned technologies — may be empty template)
+- `data/architecture-decisions.md` (ecosystem-level ADRs — may be empty template)
+- `<name>.code-workspace` (VS Code multi-root config)
+
+If `.copilot-workspace-config.yml` is MISSING → STOP and report:
+```
+Workspace not initialized. Run `copilot_workspace_init.md` first to:
+- Pick which sub-folders are GFT scope (whitelist)
+- Generate workspace scaffold (.code-workspace, .yml, data/)
+
+Then re-run this prompt to generate TechLead.
+```
+
+If `.copilot-workspace-config.yml` PRESENT → use its `repos:` list as the scope. Do NOT skim folders outside the whitelist. Honor excluded list explicitly.
+
 # OBJECTIVE
-1. Map the multi-repo workspace (count of sub-repos, roles, technologies, inter-service map).
+1. Map the multi-repo workspace, USING the whitelist from `.copilot-workspace-config.yml` (not auto-scanning everything).
 2. Generate ONE workspace-level agent: `.github/agents/techlead.agent.md` at workspace root.
-3. Wire TechLead to delegate to per-repo CTO agents via `handoffs:` (VS Code supports this).
+3. Wire TechLead to:
+   - Read `.copilot-workspace-config.yml` at Protocol Zero (so it honors whitelist on every interaction)
+   - Read `data/tech-radar.md` and `data/architecture-decisions.md` (so it respects ecosystem tech choices and prior decisions)
+   - Delegate to per-repo CTO agents via `handoffs:` (VS Code supports this)
 4. Generate workspace-level `.github/copilot-instructions.md` describing the ecosystem (NOT per-repo conventions — those stay in each sub-repo's `.github/copilot-instructions.md`).
 5. Generate workspace-level `AGENTS.md` and optional `CLAUDE.md`.
-6. Generate workspace-level `.github/prompts/*.prompt.md` for cross-repo workflows (mapowanie, audit, cross-service-change).
+6. Generate workspace-level `.github/prompts/*.prompt.md` for cross-repo workflows.
 7. TechLead body is in English (shareable with international team). Runtime communication with user is in Polish (Michał's preference). Files/docs/reports TechLead produces: English.
 
 Operate in 6 phases. Do not skip. Do not generate config before Phase 3.
 
 ---
 
-# PHASE 1 — DISCOVERY (read-only, workspace-wide)
+# PHASE 1 — DISCOVERY (read-only, scope-aware)
 
-## 1.1 Workspace structure
-- List all top-level folders (each = candidate sub-repo).
-- For each: check if `.git/` exists (real repo) or just a folder.
-- Identify which sub-repos already have `.github/agents/cto.agent.md` (v4 CTO setup) and which don't.
+## 1.0 Read workspace config FIRST
+- Read `.copilot-workspace-config.yml` → use `repos:` list as the ONLY sub-repos in scope.
+- Read `data/tech-radar.md` if exists → note allowed/avoided/planned tech (informs Phase 1.5).
+- Read `data/architecture-decisions.md` if exists → note prior ADRs (informs Phase 2 synthesis).
+- Skip all folders in `excluded:` list and all folders not listed in `repos:`.
+
+## 1.1 Workspace structure (scope-limited)
+- For each repo in whitelist: confirm folder exists, has `.git/`, has build file.
+- Identify which sub-repos already have `.github/agents/cto.agent.md` (v4 CTO setup) and which don't (cross-reference with `.copilot-workspace-config.yml` `has_cto_agent:` field).
 
 ## 1.2 Per sub-repo quick profile (cap 1 paragraph each)
 For each sub-repo: read its `README.md`, `package.json` / `pom.xml` / `build.gradle` / `requirements.txt` to determine:
@@ -330,16 +357,50 @@ Workflow:
 
 ```
 STEP 0: READ CONTEXT
+├── .copilot-workspace-config.yml              (whitelist of sub-repos in scope — REQUIRED)
+├── data/tech-radar.md                         (allowed/avoided/planned tech)
+├── data/architecture-decisions.md             (ecosystem-level ADRs)
 ├── .github/copilot-instructions.md            (workspace-level ecosystem context)
 ├── .github/copilot-lessons.md                 (workspace-level lessons)
 ├── AGENTS.md                                  (workspace-level boundaries)
-├── For each sub-repo TOUCHED by user's question:
+├── For each sub-repo TOUCHED by user's question (must be in whitelist):
 │   ├── <repo>/.github/copilot-instructions.md (per-repo conventions)
 │   ├── <repo>/.github/copilot-lessons.md      (per-repo lessons)
 │   └── Relevant code files within that repo
 ```
 
+If `.copilot-workspace-config.yml` MISSING → say: "Brakuje `.copilot-workspace-config.yml` w workspace root. Uruchom `copilot_workspace_init.md` żeby skonfigurować scope." STOP.
+
 Only after reading context, respond. Reading takes time; respond in Polish with "Sprawdzam kontekst..." then deliver.
+
+## RESPECT WORKSPACE BOUNDARIES (whitelist)
+
+Folders NOT in `.copilot-workspace-config.yml` `repos:` list are OUT OF SCOPE:
+- Do NOT scan them in search
+- Do NOT include them in ecosystem maps
+- Do NOT propose changes there
+- If user explicitly asks about an excluded folder → say: "To jest poza scope workspace (excluded w .copilot-workspace-config.yml). Jeśli chcesz to dodać, edytuj plik i dodaj do `repos:` list."
+
+## USE TECH-RADAR FOR TECHNOLOGY DECISIONS
+
+When proposing libraries, frameworks, patterns — first check `data/tech-radar.md`:
+- Technology in **ADOPT** → safe to recommend
+- Technology in **TRIAL** → recommend with caveat "currently in evaluation"
+- Technology in **ASSESS** → mention as option but not default
+- Technology in **HOLD** → recommend ONLY for maintaining legacy code; never for new code
+- Technology in **RETIRED** → do NOT recommend
+- Technology NOT in radar → safe but flag: "this isn't on our tech radar — should we add it?"
+
+If user proposes something in HOLD/RETIRED → push back politely with the radar reason.
+
+## RESPECT PRIOR ARCHITECTURE DECISIONS
+
+When planning cross-service changes, check `data/architecture-decisions.md`:
+- If proposed change CONTRADICTS an ACCEPTED ADR → STOP and surface the conflict to user. Don't silently override. Either:
+  - User says "this is a new context, let's revisit the ADR" → propose a new ADR (write to file) that supersedes the old one
+  - User says "honor the ADR" → adjust the plan accordingly
+- If proposed change MATCHES an ADR → mention it in plan as reinforcement ("aligned with ADR-NNN")
+- If new pattern is being established that doesn't match any ADR → propose adding a new ADR after change is complete
 
 ## AUTO-BRIEF (for non-trivial questions)
 

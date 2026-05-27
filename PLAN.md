@@ -29,6 +29,10 @@ Wycisnąć z GitHub Copilota w JetBrains (środowisko GFT) maksimum: dopasowanie
   - Opis: nowy wymiar — VS Code workspace nadrzędny z multi-root daje widok kilku repo GFT jednocześnie. Generuje workspace-level `TechLead` (Solution Architect): mapuje serwisy, audytuje cross-cutting, planuje cross-service refactor. Komunikacja po polsku, artifakty pisane po angielsku (shareable). Korzysta z VS Code'owych ficzerów: handoffs (działa!), model fallback array. Chain: TechLead → CTO per-repo (handoff do konkretnego serwisu, mokra na execution).
   - Deadline: 2026-05-27 ✅
 
+- [x] **Milestone 1.9:** Workspace init meta-prompt + integracja data/ z TechLead
+  - Opis: nowy meta-meta-prompt `copilot_workspace_init.md` jako KROK 1 dla świeżego workspace nadrzędnego. Skanuje folder, interactive whitelist sub-repo, generuje `.code-workspace` + `.copilot-workspace-config.yml` + `data/tech-radar.md` (allowed/avoided tech) + `data/architecture-decisions.md` (ekosystem ADR). Audytuje per sub-repo (CTO v3/v4/brak), raport z listą komend. TechLead zaktualizowany: czyta whitelist (nie skanuje folderów spoza scope), czyta tech-radar (nie proponuje HOLD/RETIRED tech), czyta ADR (flaguje konflikty propozycji z istniejącymi decyzjami).
+  - Deadline: 2026-05-27 ✅
+
 - [ ] **Milestone 2:** Pierwszy realny test v3 vs v4 na serwisie GFT (porównanie)
   - Opis: wybrać 1 serwis, najpierw uruchomić v3 (lub upgrade do v3), zrobić feature lub fix. Potem upgrade do v4 (`upgrade_v3_to_v4.md`), zrobić podobny feature/fix. Porównać subiektywnie:
     - Liczba kliknięć / interakcji per task
@@ -70,6 +74,7 @@ Wycisnąć z GitHub Copilota w JetBrains (środowisko GFT) maksimum: dopasowanie
 
 ### Zakończone
 
+- [x] 2026-05-27: Workspace init meta-prompt — interactive whitelist sub-repo, generuje .code-workspace + .copilot-workspace-config.yml + data/ skeleton + raport per sub-repo. TechLead updated o czytanie whitelist + tech-radar + ADR.
 - [x] 2026-05-27: Multi-repo TechLead — workspace-level Solution Architect dla VS Code z multi-root. Mapowanie, audit, cross-service refactor planning. Chain do per-repo CTO. Polski runtime, angielskie artifakty.
 - [x] 2026-05-27: v4 bootstrap prompt — single CTO agent (Werner Vogels-style, polski, symulator perspektyw, Protokół Zero, Zero Halucynacji, Weryfikacja Sędziego)
 - [x] 2026-05-27: upgrade prompt v3→v4 — kasuje 4 helpery, dodaje 1 CTO, aktualizuje narrative, zachowuje lessons/instructions/prompts (w tym full-feature-loop jako opcję)

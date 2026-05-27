@@ -14,7 +14,8 @@ Bootstrap + upgrade prompty do konfiguracji GitHub Copilot w mikroserwisach (plu
 - **copilot_jetbrains_upgrade_v1_to_v2.md** — upgrade v1 → v2. Dual-mode.
 - **copilot_jetbrains_upgrade_v2_to_v3.md** — upgrade v2 → v3. Przebudowuje agent files (usuwa handoffs/model, dodaje user-invocable/disable-model-invocation), aktualizuje narrative, dokłada `full-feature-loop.prompt.md`. Zachowuje `copilot-lessons.md`, `instructions/`, `prompts/`. Dual-mode.
 - **copilot_jetbrains_upgrade_v3_to_v4.md** — upgrade v3 → v4. Kasuje 4 helpery v3, tworzy 1 CTO agent, aktualizuje narrative. Zachowuje lessons / instructions / prompts (w tym full-feature-loop jako opcję alternatywną). Dual-mode.
-- **copilot_vscode_multirepo_techlead.md** — **dla VS Code workspace nadrzędnego** z multi-root (kilka repo GFT jednocześnie). Generuje workspace-level `TechLead` (Solution Architect): mapuje serwisy, audytuje cross-cutting, planuje cross-service refactor. Komunikacja po polsku, wszystkie artifakty pisane po angielsku (shareable z międzynarodowym zespołem). Korzysta z VS Code'owych ficzerów niedostępnych w JetBrains: `handoffs:`, `model:` jako fallback array. Chain: TechLead → CTO per-repo (handoff na konkretny serwis). Komplementarne do v4 — TechLead big picture, CTO per-project deep work.
+- **copilot_workspace_init.md** — **meta-meta-prompt**: jednorazowy setup workspace nadrzędnego ZANIM uruchomisz TechLead. Skanuje folder, interactive whitelist sub-repo, generuje `.code-workspace` + `.copilot-workspace-config.yml` + `data/tech-radar.md` + `data/architecture-decisions.md`, audyt per sub-repo (które mają CTO v3/v4/brak), raport z listą następnych komend.
+- **copilot_vscode_multirepo_techlead.md** — **dla VS Code workspace nadrzędnego** z multi-root (kilka repo GFT jednocześnie). Wymaga uprzedniej inicjalizacji przez `copilot_workspace_init.md`. Generuje workspace-level `TechLead` (Solution Architect): mapuje serwisy z whitelist, audytuje cross-cutting, planuje cross-service refactor. Honoruje `data/tech-radar.md` (nie proponuje HOLD/RETIRED tech) i `data/architecture-decisions.md` (nie łamie istniejących ADR). Komunikacja po polsku, wszystkie artifakty pisane po angielsku (shareable z międzynarodowym zespołem). Chain: TechLead → CTO per-repo (handoff). Komplementarne do v4 — TechLead big picture, CTO per-project deep work.
 - **autonomous_subagent_workflow.md** — gotowe prompty do uruchamiania pętli subagentów. **UWAGA:** v2-era doc, część założeń (subagent chain, model per agent w jednej sesji) NIE działa w JetBrains 1.6.x. W praktyce stosuj wariant Plan B (manualne sesje) lub `#prompt:full-feature-loop` z v3.
 - **research/dr_report_2026-05-08_jetbrains_agents.md** — Deep Research raport: co realnie działa w JetBrains 1.6.x, co NIE, dlaczego v3 odeszło od v2 architektury. Cytaty z oficjalnych GitHub Docs.
 
@@ -38,9 +39,17 @@ Bootstrap + upgrade prompty do konfiguracji GitHub Copilot w mikroserwisach (plu
 
 | Sytuacja | Prompt |
 |---|---|
-| Folder nadrzędny z kilkoma sub-repo GFT, chcę big picture / cross-service planning | `copilot_vscode_multirepo_techlead.md` ⭐ |
+| Świeży folder nadrzędny — najpierw setup workspace (whitelist sub-repo + skeleton data/) | `copilot_workspace_init.md` ⭐ (uruchom PIERWSZE) |
+| Po inicjalizacji — generowanie agenta TechLead | `copilot_vscode_multirepo_techlead.md` ⭐ (uruchom DRUGIE) |
 
 Multi-repo i per-project są KOMPLEMENTARNE: w IntelliJ pracujesz deep w jednym repo z CTO, w VS Code planujesz cross-service zmiany z TechLead. TechLead może handoff do CTO konkretnego sub-repo.
+
+**Kolejność dla świeżego workspace nadrzędnego:**
+1. `copilot_workspace_init.md` → wybierasz whitelist sub-repo, generuje config + data templates
+2. (opcjonalnie) wypełnij `data/tech-radar.md` i `data/architecture-decisions.md`
+3. Dla sub-repo bez CTO: `copilot_jetbrains_bootstrap_v4.md` w IntelliJ (per repo, ~10 min każde)
+4. `copilot_vscode_multirepo_techlead.md` → generuje TechLead w workspace
+5. Reload VS Code → gotowe
 
 ## Jak użyć (v4 EXPERIMENTAL / świeży serwis JetBrains 1.6.1+, single CTO)
 
@@ -67,15 +76,26 @@ Multi-repo i per-project są KOMPLEMENTARNE: w IntelliJ pracujesz deep w jednym 
 3. Wybierz tryb: `1` interactive lub `2` autonomous.
 4. Po zakończeniu: pełny restart IDE.
 
-## Jak użyć (multi-repo TechLead w VS Code workspace)
+## Jak użyć (multi-repo workspace — kolejność)
 
-1. Otwórz folder nadrzędny w VS Code (lub workspace `.code-workspace` z wieloma rootami).
-2. Settings → GitHub Copilot → Chat → włącz Agent mode, Custom Agent, Subagent.
-3. Copilot Chat → Agent mode → model Claude Opus 4.6.
-4. Wklej `copilot_vscode_multirepo_techlead.md`.
-5. 6 faz: Discovery (mapuje workspace) → Synthesis (ecosystem snapshot) → Materialize → Verify → Tailored Extensions → Registration Guide.
-6. Po zakończeniu reload window → smoke test: agents dropdown → **TechLead** → "Daj mi mapę serwisów" → po polsku z listą + opcja zapisu do `WIP/` po angielsku.
-7. Test handoff do per-repo: TechLead → "drill into service-X" → CTO konkretnego sub-repo przejmuje.
+**Krok 1: workspace init (jednorazowo)**
+1. Otwórz folder nadrzędny w VS Code (np. `~/work/gft/`).
+2. Copilot Chat → Agent mode → Opus 4.6.
+3. Wklej `copilot_workspace_init.md`.
+4. Interactive: wybierz które sub-foldery to GFT scope (whitelist).
+5. Generuje: `.code-workspace`, `.copilot-workspace-config.yml`, `data/tech-radar.md`, `data/architecture-decisions.md`.
+6. Czytasz raport — które sub-repo wymagają CTO bootstrap.
+
+**Krok 2: bootstrap per-repo (dla sub-repo bez CTO)**
+- IntelliJ → otwórz sub-repo → wklej `copilot_jetbrains_bootstrap_v4.md`.
+- Powtórz dla każdego brakującego.
+
+**Krok 3: generowanie TechLead**
+1. Wróć do VS Code workspace.
+2. Wklej `copilot_vscode_multirepo_techlead.md` (wymaga że krok 1 jest zrobiony — sprawdza `.copilot-workspace-config.yml`).
+3. 6 faz: Discovery (z whitelist) → Synthesis → Materialize → Verify → Tailored Extensions → Registration Guide.
+4. Reload VS Code window → smoke test: agents dropdown → **TechLead** → "Daj mi mapę serwisów".
+5. Test handoff: TechLead → "drill into service-X" → CTO konkretnego sub-repo.
 
 ## Jak użyć (upgrade v2 → v3, gdy serwis ma już v2)
 
