@@ -25,6 +25,10 @@ Wycisnąć z GitHub Copilota w JetBrains (środowisko GFT) maksimum: dopasowanie
   - Opis: alternatywa architektoniczna do v3. Jeden uniwersalny agent CTO inspirowany TEAM/CTO.md (Werner Vogels-style: pragmatyzm, primitives, build it run it). Polski język, symulator perspektyw, Protokół Zero, Zero Halucynacji, Weryfikacja Sędziego. Robi sam: plan/impl/debug/review w jednej sesji. v3 zostaje stable, v4 do testowania równolegle.
   - Deadline: 2026-05-27 ✅
 
+- [x] **Milestone 1.8:** Multi-repo TechLead dla VS Code workspace
+  - Opis: nowy wymiar — VS Code workspace nadrzędny z multi-root daje widok kilku repo GFT jednocześnie. Generuje workspace-level `TechLead` (Solution Architect): mapuje serwisy, audytuje cross-cutting, planuje cross-service refactor. Komunikacja po polsku, artifakty pisane po angielsku (shareable). Korzysta z VS Code'owych ficzerów: handoffs (działa!), model fallback array. Chain: TechLead → CTO per-repo (handoff do konkretnego serwisu, mokra na execution).
+  - Deadline: 2026-05-27 ✅
+
 - [ ] **Milestone 2:** Pierwszy realny test v3 vs v4 na serwisie GFT (porównanie)
   - Opis: wybrać 1 serwis, najpierw uruchomić v3 (lub upgrade do v3), zrobić feature lub fix. Potem upgrade do v4 (`upgrade_v3_to_v4.md`), zrobić podobny feature/fix. Porównać subiektywnie:
     - Liczba kliknięć / interakcji per task
@@ -66,6 +70,7 @@ Wycisnąć z GitHub Copilota w JetBrains (środowisko GFT) maksimum: dopasowanie
 
 ### Zakończone
 
+- [x] 2026-05-27: Multi-repo TechLead — workspace-level Solution Architect dla VS Code z multi-root. Mapowanie, audit, cross-service refactor planning. Chain do per-repo CTO. Polski runtime, angielskie artifakty.
 - [x] 2026-05-27: v4 bootstrap prompt — single CTO agent (Werner Vogels-style, polski, symulator perspektyw, Protokół Zero, Zero Halucynacji, Weryfikacja Sędziego)
 - [x] 2026-05-27: upgrade prompt v3→v4 — kasuje 4 helpery, dodaje 1 CTO, aktualizuje narrative, zachowuje lessons/instructions/prompts (w tym full-feature-loop jako opcję)
 - [x] 2026-05-08: v3 bootstrap prompt — JetBrains official-safe (1 main + 3 helpers, max 1 poziom delegacji)

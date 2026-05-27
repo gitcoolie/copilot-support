@@ -10,8 +10,9 @@
 **Ostatnia istotna zmiana:** 2026-05-27 — dodane v4 + upgrade v3→v4. v4 to alternatywa architektoniczna: jeden uniwersalny agent CTO (Werner Vogels-style, polski, symulator perspektyw, Protokół Zero, Zero Halucynacji, Weryfikacja Sędziego) zamiast 4 wyspecjalizowanych helperów z v3. Inspirowane `TEAM/CTO.md`. Do testowania równolegle z v3 — wybór architektury per Twoja preferencja.
 
 **Kluczowe pliki:**
-- `copilot_jetbrains_bootstrap_v4.md` — **EXPERIMENTAL** single-CTO architecture. Jeden uniwersalny agent inspirowany TEAM/CTO.md.
-- `copilot_jetbrains_bootstrap_v3.md` — **STABLE** 4-agent advisor. Architect + Coder + Reviewer + Debugger z 1-poziomem delegacji.
+- `copilot_vscode_multirepo_techlead.md` — **MULTI-REPO** TechLead dla VS Code workspace nadrzędnego (cross-service planning, audit, mapowanie). Komplementarne do v4.
+- `copilot_jetbrains_bootstrap_v4.md` — **EXPERIMENTAL** single-CTO per-project (IntelliJ).
+- `copilot_jetbrains_bootstrap_v3.md` — **STABLE** 4-agent advisor per-project (IntelliJ).
 - `copilot_jetbrains_upgrade_v3_to_v4.md` — przejście v3 → v4 (kasuje 4 helpery, dodaje 1 CTO). Dual-mode.
 - `copilot_jetbrains_upgrade_v2_to_v3.md` — upgrade dla serwisów na v2. Dual-mode, zachowuje lessons/instructions/prompts.
 - `copilot_jetbrains_bootstrap_v2.md` — v2 (VS Code-style), z `handoffs:` i per-agent `model:`. **Deprecated w JetBrains**, zostaje dla VS Code i historii decyzji.
