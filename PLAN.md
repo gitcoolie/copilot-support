@@ -33,6 +33,10 @@ Wycisnąć z GitHub Copilota w JetBrains (środowisko GFT) maksimum: dopasowanie
   - Opis: nowy meta-meta-prompt `copilot_workspace_init.md` jako KROK 1 dla świeżego workspace nadrzędnego. Skanuje folder, interactive whitelist sub-repo, generuje `.code-workspace` + `.copilot-workspace-config.yml` + `data/tech-radar.md` (allowed/avoided tech) + `data/architecture-decisions.md` (ekosystem ADR). Audytuje per sub-repo (CTO v3/v4/brak), raport z listą komend. TechLead zaktualizowany: czyta whitelist (nie skanuje folderów spoza scope), czyta tech-radar (nie proponuje HOLD/RETIRED tech), czyta ADR (flaguje konflikty propozycji z istniejącymi decyzjami).
   - Deadline: 2026-05-27 ✅
 
+- [x] **Milestone 1.10:** v4.1 — data/ files per-project + refresh-context + spot-check
+  - Opis: per-project warstwa trwałego kontekstu (analog `data/` w jego systemie projektowym). Bootstrap_v4 zaktualizowany żeby generował `data/structure-map.md` + `data/api-inventory.md` + `data/conventions.md` + `data/known-issues.md` jako materializacja Phase 1 Discovery. CTO body: Protokół Zero rozszerzony o data/*, dodana sekcja Consistency Spot-Check (3 random items z api-inventory weryfikowane per session), WHEN DATA/ GETS STALE — refresh protocol. Nowy `refresh-context.prompt.md` do aktualizacji data/ po większych zmianach. Osobny `copilot_jetbrains_upgrade_v4_to_v4_1.md` dla istniejących v4 setupów. Token-economical (~3k trwałego context vs re-discovery).
+  - Deadline: 2026-05-27 ✅
+
 - [ ] **Milestone 2:** Pierwszy realny test v3 vs v4 na serwisie GFT (porównanie)
   - Opis: wybrać 1 serwis, najpierw uruchomić v3 (lub upgrade do v3), zrobić feature lub fix. Potem upgrade do v4 (`upgrade_v3_to_v4.md`), zrobić podobny feature/fix. Porównać subiektywnie:
     - Liczba kliknięć / interakcji per task
@@ -74,6 +78,7 @@ Wycisnąć z GitHub Copilota w JetBrains (środowisko GFT) maksimum: dopasowanie
 
 ### Zakończone
 
+- [x] 2026-05-27: v4.1 — per-project data/ (structure-map / api-inventory / conventions / known-issues) + refresh-context prompt + Consistency Spot-Check w CTO. Bootstrap_v4 updated + osobny upgrade v4 → v4.1.
 - [x] 2026-05-27: Workspace init meta-prompt — interactive whitelist sub-repo, generuje .code-workspace + .copilot-workspace-config.yml + data/ skeleton + raport per sub-repo. TechLead updated o czytanie whitelist + tech-radar + ADR.
 - [x] 2026-05-27: Multi-repo TechLead — workspace-level Solution Architect dla VS Code z multi-root. Mapowanie, audit, cross-service refactor planning. Chain do per-repo CTO. Polski runtime, angielskie artifakty.
 - [x] 2026-05-27: v4 bootstrap prompt — single CTO agent (Werner Vogels-style, polski, symulator perspektyw, Protokół Zero, Zero Halucynacji, Weryfikacja Sędziego)

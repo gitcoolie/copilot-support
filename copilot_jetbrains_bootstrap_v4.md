@@ -1,6 +1,7 @@
 # Copilot JetBrains Bootstrap Prompt — v4 (Single CTO Agent)
 
-**Wersja:** v4.0 (2026-05-27)
+**Wersja:** v4.1 (2026-05-27 update)
+**Co nowe vs v4.0:** dodane `data/` files per-project (structure-map, api-inventory, conventions, known-issues) jako trwały kontekst który CTO czyta przy Protokole Zero zamiast re-discoverować strukturę projektu każdej sesji. Plus `refresh-context.prompt.md` do utrzymywania spójności gdy kod się zmienia. Token-economical (~3k tokens trwałego context vs re-discovery na każdej sesji).
 **Target:** GitHub Copilot plugin for JetBrains 1.6.1+ (IntelliJ / IntelliJ Ultimate)
 **Modele:** Claude Opus 4.6, Claude Sonnet 4.6, GPT-5.3-Codex
 **Status:** EXPERIMENTAL — alternatywa architektoniczna do v3
@@ -27,7 +28,7 @@ v4 pakuje to wszystko w jednego CTO który:
 
 ```
 .github/
-├── copilot-instructions.md          ← BAZA — AUTO każda interakcja
+├── copilot-instructions.md          ← BAZA (filozofia, hard rules) — AUTO każda interakcja
 ├── git-commit-instructions.md       ← AUTO przy commitach
 ├── instructions/                    ← overlays — AUTO gdy pasuje glob
 │   ├── tests.instructions.md
@@ -43,15 +44,22 @@ v4 pakuje to wszystko w jednego CTO który:
 │   ├── review-change.prompt.md
 │   ├── debug-incident.prompt.md
 │   ├── explain-area.prompt.md
-│   └── learn-from-correction.prompt.md
-├── agents/                          ← v4: TYLKO JEDEN AGENT
-│   └── cto.agent.md                 ← Werner Vogels-style senior CTO, robi wszystko
+│   ├── learn-from-correction.prompt.md
+│   └── refresh-context.prompt.md    ← NEW v4.1 (aktualizuje data/ po zmianach kodu)
+├── agents/cto.agent.md              ← single Werner Vogels-style senior CTO
 └── copilot-lessons.md               ← self-improvement memory
+data/                                ← NEW v4.1: trwały kontekst projektu
+├── structure-map.md                 ← drzewo katalogów + role per top-level (≤80 lines)
+├── api-inventory.md                 ← REST + Kafka + DB endpointy z file:line (≤150 lines)
+├── conventions.md                   ← naming, error, logging z konkretnymi examples file:line (≤80 lines)
+└── known-issues.md                  ← sharp edges, race conditions, niepisane reguły (empty na start, rośnie organicznie)
 AGENTS.md                            ← AUTO w agent mode
 CLAUDE.md                            ← opcjonalnie
 ```
 
 Brak `architect.agent.md`, `coder.agent.md`, `reviewer.agent.md`, `debugger.agent.md` — wszystkie role są w `cto.agent.md`.
+
+`data/` files: CTO czyta je przy Protokole Zero zamiast re-discoverować strukturę za każdym razem. Total ~3000 tokens trwałego context = mniej tokens per session vs re-skanowanie 30+ plików kodu.
 
 ## Jak użyć
 
@@ -97,6 +105,7 @@ Other plugin features: `AGENTS.md` / `CLAUDE.md` (auto-loaded in agent mode, nes
 4. Wire self-improvement loop (`copilot-lessons.md`).
 5. CTO agent embeds Werner Vogels-style pragmatism, multi-perspective simulation, Protocol Zero (read context first), Zero Hallucination, Judge Verification (quality check before claiming done), and explicit Polish-language communication style.
 6. Generate prompts/ as workflow templates (CTO can recommend them to user when relevant; user invokes via `#prompt:`).
+7. **NEW v4.1: Materialize Phase 1 Discovery results to `data/*.md` files** (structure-map, api-inventory, conventions, known-issues) so CTO has persistent context at Protocol Zero instead of re-discovering structure every session. Token-economical (~3k tokens trwałego context). Plus `refresh-context.prompt.md` to keep `data/` synced when code drifts.
 
 Operate in 6 phases. Do not skip. Do not generate config before Phase 3.
 
@@ -137,7 +146,7 @@ Print "Service Snapshot": mission paragraph, architecture in 5 bullets, tech sta
 
 # PHASE 3 — MATERIALIZE CONFIG
 
-Files allowed: `.github/copilot-instructions.md`, `.github/git-commit-instructions.md`, `.github/instructions/*.instructions.md`, `.github/prompts/*.prompt.md`, `.github/agents/cto.agent.md` (ONLY this one), `.github/copilot-lessons.md`, `AGENTS.md`, `CLAUDE.md`, optional `<subtree>/AGENTS.md`.
+Files allowed: `.github/copilot-instructions.md`, `.github/git-commit-instructions.md`, `.github/instructions/*.instructions.md`, `.github/prompts/*.prompt.md`, `.github/agents/cto.agent.md` (ONLY this one), `.github/copilot-lessons.md`, `data/structure-map.md`, `data/api-inventory.md`, `data/conventions.md`, `data/known-issues.md`, `AGENTS.md`, `CLAUDE.md`, optional `<subtree>/AGENTS.md`.
 
 ## 3.1 `.github/copilot-instructions.md` (max ~150 lines)
 
@@ -173,6 +182,34 @@ Detect commit convention from `git log --oneline -50`, enforce.
 Same set as v3 (analyze-feature, implement-from-plan, add-endpoint, add-kafka-consumer, review-change, debug-incident, explain-area, learn-from-correction). Frontmatter: ONLY `description:`. CTO can recommend these to user mid-session; user invokes via `#prompt:`.
 
 NOTE: v4 does NOT generate `full-feature-loop.prompt.md` — CTO handles multi-stage internally without needing user-driven stage switching.
+
+PLUS v4.1 NEW: `refresh-context.prompt.md`:
+```markdown
+---
+description: 'Refresh data/*.md files (structure-map, api-inventory, conventions, known-issues) to match current code. Run after big changes: new feature merged, refactor, new endpoint/topic added.'
+---
+
+# Refresh Project Context
+
+Re-run targeted Discovery to update persistent context files in `data/`.
+
+## What to do
+1. Read CURRENT `data/structure-map.md`, `data/api-inventory.md`, `data/conventions.md`.
+2. Scan current code:
+   - Top-level directory structure (vs structure-map.md)
+   - All REST controllers + endpoints (vs api-inventory.md REST section)
+   - All Kafka consumers/producers + topic names (vs api-inventory.md Kafka section)
+   - DB schemas / main tables (vs api-inventory.md DB section)
+   - Sample 3-5 recent commits or recent files for convention drift (vs conventions.md)
+3. Produce diff: what's NEW in code that's not in data/, what's in data/ that no longer exists in code.
+4. Ask user: "Apply updates? (y / show diff / skip)"
+5. On `y`: edit data/ files. Show what changed.
+6. DO NOT touch data/known-issues.md (organicznie wypełniany przez user / CTO przy realnych problemach — refresh nie aktualizuje go automatycznie).
+
+Default to minimal updates — don't reformat, don't reorganize, just add new entries and remove deleted ones. All rules in `.github/copilot-instructions.md` apply.
+```
+
+This prompt does NOT regenerate copilot-instructions.md or agent files. Only `data/` files. Run when code drifts noticeably.
 
 ## 3.5 `.github/agents/cto.agent.md` — THE agent (v4)
 
@@ -248,15 +285,46 @@ Synteza jest moim wyborem — krótkim, konkretnym. Perspektywy to nie debata ak
 ```
 KROK 0: CZYTAM KONTEKST PROJEKTU
 ├── .github/copilot-instructions.md   (filozofia, hard rules, conventions)
+├── data/structure-map.md              (drzewo + role — wiem gdzie co siedzi bez re-skanowania)
+├── data/api-inventory.md              (endpoints/topics/tables z file:line — cytuję bez halucynacji)
+├── data/conventions.md                (concrete patterns z examples — mimic bez czytania 5 plików)
+├── data/known-issues.md               (sharp edges, historical gotchas)
 ├── .github/instructions/*.instructions.md  (path-scoped — gdy task dotyka pasującego globa)
 ├── .github/copilot-lessons.md         (lessons z korekt usera)
 ├── AGENTS.md                          (agent boundaries)
-└── relevant code files                (sąsiednie pliki w tym samym package — żeby mimic conventions)
+└── relevant code files                (TYLKO te których nie ma w data/api-inventory — minimal re-scan)
 
 Dopiero potem odpowiadam.
 ```
 
-**ZASADA:** Każda moja rada/diff jest oparta na TYM repo i tych konwencjach, nie na ogólnikach z internetu.
+**ZASADA:** Każda moja rada/diff jest oparta na TYM repo, na trwałym kontekście z `data/`, a NIE na ogólnikach z internetu lub re-discovery.
+
+## CONSISTENCY SPOT-CHECK (NEW v4.1)
+
+Przy KAŻDYM Protokole Zero, dodatkowo wyrywkowo sprawdzam czy `data/` nie rozjechał się z kodem:
+
+1. Z `data/api-inventory.md` wybieram **3 random** entries (np. 1 endpoint REST + 1 Kafka topic + 1 DB table).
+2. Sprawdzam czy file:line nadal istnieje i czy zawartość matchuje (np. controller wciąż ma ten endpoint w tym samym miejscu, listener wciąż konsumuje ten topic).
+3. Jeśli WSZYSTKIE 3 OK → milcząco kontynuuję task.
+4. Jeśli 1+ ROZJAZD → flaguję user'owi PRZED odpowiedzią:
+   ```
+   [STALE CONTEXT WARNING]
+   data/api-inventory.md może być nieaktualny:
+   - <entry> nie znaleziony w <file:line> (możliwie: refactor, deprecated, file moved)
+   - <entry>: sygnatura zmieniona (was: X, is: Y)
+   
+   Proponuję: uruchom `#prompt:refresh-context` zanim podejmiemy decyzje na podstawie tego pliku.
+   Mogę kontynuować bieżący task ale zaznaczam że data/ wymaga odświeżenia. [tak/refresh first/stop]
+   ```
+
+To kosztuje ~50 dodatkowych tokens per session (3 grep'y) ale chroni przed decyzjami na zatrutym kontekście.
+
+## WHEN DATA/ GETS STALE — REFRESH PROTOCOL
+
+Jeśli zauważę systematyczny rozjazd (3+ entries stale w jednej sesji) → mówię user'owi:
+> "Widzę systematyczny rozjazd `data/api-inventory.md` z kodem. Zalecam uruchomić `#prompt:refresh-context` PRZED dalszą pracą — inaczej moje sugestie mogą być oparte na nieaktualnej mapie. Czy odpalamy refresh?"
+
+NIE aktualizuję `data/` automatycznie sam — user decyduje (refresh prompt jest explicit, robi diff + ask).
 
 ## AUTO-BRIEF (na starcie istotnego taska)
 
@@ -529,6 +597,158 @@ Each entry:
 <!-- New lessons go here, newest on top. Empty until first correction. -->
 ```
 
+## 3.9 `data/*.md` — persistent project context (NEW v4.1)
+
+Materialize Phase 1 Discovery results to files so CTO doesn't re-discover at Protocol Zero. Token-economical: ~3000 tokens trwałego context vs re-skanowanie 30+ plików kodu per session.
+
+ALL FOUR files in `data/` at repo root. Keep TIGHT — each has line cap. CTO reads ALL four at Protocol Zero, so total cost matters.
+
+### 3.9.1 `data/structure-map.md` (≤80 lines)
+
+```markdown
+# Structure Map — <service-name>
+
+## Top-level layout (each entry: path + 1-line role)
+- `src/main/java/com/<org>/<service>/` — main application code
+  - `api/` or `controller/` — REST/gRPC entry points
+  - `domain/` or `model/` — domain entities
+  - `service/` or `usecase/` — business logic
+  - `repository/` or `infrastructure/persistence/` — data access
+  - `integration/` or `client/` — outbound HTTP/Kafka clients
+  - `config/` — Spring configuration
+- `src/main/resources/` — application.yml, schemas, static
+- `src/test/` — test code (mirror of main + integration/)
+- `<build-file>` (pom.xml / build.gradle) — dependencies
+- `Jenkinsfile` / `.github/workflows/` — CI
+
+## Key sub-trees (non-obvious, worth knowing)
+- `<path>` — <why this exists, why structured this way>
+
+## Build / module structure
+- Single-module Maven (default) | Multi-module (list modules with role)
+- Profiles: dev / test / prod
+
+## NOT in repo (intentional)
+- Frontend code (in <other-repo>)
+- Shared lib X (in <other-repo>)
+```
+
+Generate from Phase 1.1 findings. Keep concrete (real paths from this repo).
+
+### 3.9.2 `data/api-inventory.md` (≤150 lines)
+
+```markdown
+# API Inventory — <service-name>
+
+Source of truth for endpoints/topics/tables. CTO cites file:line from here. Refresh via `#prompt:refresh-context` after big changes.
+
+## REST endpoints (this service EXPOSES)
+| Method | Path                          | Controller:line                | Auth      | OpenAPI? |
+|--------|-------------------------------|--------------------------------|-----------|----------|
+| GET    | /api/v1/orders/{id}           | OrderController.java:34        | JWT       | yes      |
+| POST   | /api/v1/orders                | OrderController.java:52        | JWT       | yes      |
+| ...    | ...                           | ...                            | ...       | ...      |
+
+## REST endpoints (this service CONSUMES from others)
+| Service          | Method | Path                  | Called from           | Failure mode |
+|------------------|--------|-----------------------|-----------------------|--------------|
+| service-payments | POST   | /api/v1/charge        | PaymentClient.java:18 | retry 3x + CB|
+| ...              | ...    | ...                   | ...                   | ...          |
+
+## Kafka topics (this service PRODUCES)
+| Topic              | Schema      | Producer location          | Partition key |
+|--------------------|-------------|----------------------------|---------------|
+| order.created      | OrderEvent  | OrderService.java:78       | orderId       |
+| ...                | ...         | ...                        | ...           |
+
+## Kafka topics (this service CONSUMES)
+| Topic              | Consumer group       | Listener:line              | Idempotent? | DLQ |
+|--------------------|----------------------|----------------------------|-------------|-----|
+| user.updated       | service-orders-group | UserListener.java:25       | yes         | yes |
+| ...                | ...                  | ...                        | ...         | ... |
+
+## DB schemas / main tables
+- Schema: `orders_db`
+  - `orders` (PK: id, FK: customer_id → customers.id)
+  - `order_items` (PK: id, FK: order_id → orders.id)
+  - Migrations: `src/main/resources/db/migration/V*.sql` (Flyway)
+```
+
+Generate from Phase 1.3 findings. file:line is REQUIRED (anti-halucination).
+
+### 3.9.3 `data/conventions.md` (≤80 lines)
+
+```markdown
+# Conventions Cheatsheet — <service-name>
+
+Concrete examples from real code (file:line). CTO mimics these instead of re-reading sibling files.
+
+## Naming
+- Controllers: `<Resource>Controller.java` (e.g., OrderController.java:1)
+- Services: `<Resource>Service.java` (interface) + `<Resource>ServiceImpl.java` (impl) — example: OrderService.java:1 + OrderServiceImpl.java:1
+- Repos: `<Resource>Repository.java` (Spring Data) — example: OrderRepository.java:1
+- DTOs: `<Operation><Resource>Request|Response.java` — example: CreateOrderRequest.java:1
+- Tests: `<ClassUnderTest>Test.java` (unit) + `<ClassUnderTest>IT.java` (integration)
+
+## Error handling
+- Custom domain exceptions extend `DomainException` (DomainException.java:5)
+- Mapped to HTTP via `GlobalExceptionHandler` (GlobalExceptionHandler.java:18) → problem+json format
+- Never swallow: every catch logs + rethrows OR has explicit "this is fine because X" comment
+
+## Logging
+- SLF4J: `private static final Logger log = LoggerFactory.getLogger(<Class>.class);`
+- Level guidance: ERROR (will page on-call), WARN (degraded state), INFO (state transitions), DEBUG (request flow)
+- PII rule: never log full email/phone — only hash or last 4 chars (PiiSanitizer.java:12)
+
+## Tests
+- Framework: JUnit 5 + Mockito + Testcontainers for integration
+- Layout: `src/test/java` mirrors `src/main/java`
+- Naming: `should_<expected>_when_<condition>` (e.g., `should_throw_NotFound_when_order_missing`)
+- Integration tests in `*IT.java` with `@Testcontainers` — see OrderControllerIT.java:1
+- NEVER `Thread.sleep()` — use Awaitility (Awaitility.await().untilAsserted(...))
+
+## DI style
+- Constructor injection (no `@Autowired` on fields). See OrderService.java:18 for example.
+
+## Async
+- Reactive (WebFlux + Reactor) in <these packages>: ... — see PaymentClient.java:24
+- Blocking (regular Spring MVC) in others — default
+```
+
+Generate from Phase 1.4 findings. Each rule MUST have file:line example.
+
+### 3.9.4 `data/known-issues.md` (empty scaffold)
+
+```markdown
+# Known Issues — <service-name>
+
+Sharp edges, race conditions, niepisane reguły, gotchas. Organicznie wypełniany przez CTO i user.
+
+CTO dopisuje gdy:
+- Trafi na bug którego nie wyjaśnia kod (likely historical, oral knowledge required)
+- User wyjaśnia "ah, to dlatego że <obscure reason>" — CTO zapisuje
+- Refactor który wygląda na safe ale rozwala 3 testy — capture the lesson
+
+User dopisuje gdy:
+- Pamięta historical incident worth recording
+
+## Format
+\`\`\`
+### YYYY-MM-DD — <short title>
+- **Symptom:** <what looks wrong / what breaks>
+- **Cause:** <real underlying reason>
+- **File:line:** <evidence>
+- **Workaround:** <what to do / not do>
+- **Fix path (if planned):** <ticket or "TBD" or "won't fix because X">
+\`\`\`
+
+## Issues
+
+<!-- New issues go here, newest on top. Empty at bootstrap. -->
+```
+
+Empty na start. Rośnie organicznie — refresh-context.prompt.md NIE aktualizuje tego pliku.
+
 ---
 
 # PHASE 4 — VERIFY & REPORT
@@ -542,8 +762,14 @@ After writing files:
    - `disable-model-invocation: false`
    - NO `model:` field, NO `handoffs:` field
 4. Confirm NO other agent files exist in `.github/agents/` (single-agent architecture).
-5. Top 3 most-important conventions encoded in `copilot-instructions.md` — user must confirm.
-6. Remaining `OPEN:` items.
+5. **NEW v4.1**: Confirm `data/` exists with 4 files:
+   - `data/structure-map.md` — within ≤80 lines, real paths from this repo
+   - `data/api-inventory.md` — within ≤150 lines, file:line refs for endpoints/topics/tables
+   - `data/conventions.md` — within ≤80 lines, file:line examples for each rule
+   - `data/known-issues.md` — empty scaffold (just the header + format guidance)
+6. Confirm `.github/prompts/refresh-context.prompt.md` exists.
+7. Top 3 most-important conventions encoded in `copilot-instructions.md` — user must confirm.
+8. Remaining `OPEN:` items.
 
 ---
 
